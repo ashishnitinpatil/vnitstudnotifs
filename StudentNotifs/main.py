@@ -42,12 +42,14 @@ class MainHandler(webapp2.RequestHandler):
 		if q == "all":
 			posts = memcache.get("all_posts")
 			if not posts:
-				posts = db.GqlQuery("SELECT * FROM Posts ORDER BY created DESC").fetch(50)
+				posts = db.GqlQuery("SELECT * FROM Posts ORDER BY created DESC").fetch(100)
 				memcache.set(key="all_posts",value=posts,time=604800)
+			template_values = {'posts': posts}
+			template_values['all'] = True
 		else:
 			posts = memcache.get("latest_posts")
 			if not posts:
-				all_posts = db.GqlQuery("SELECT * FROM Posts ORDER BY created DESC").fetch(50)
+				all_posts = db.GqlQuery("SELECT * FROM Posts ORDER BY created DESC").fetch(20)
 				cur = datetime.datetime.now()
 				posts = []
 				for pst in all_posts:
@@ -55,9 +57,12 @@ class MainHandler(webapp2.RequestHandler):
 						posts.append(pst)
 					else:
 						break
+				if not posts:
+					posts = db.GqlQuery("SELECT * FROM Posts ORDER BY created DESC").fetch(10)
 				memcache.set(key="latest_posts",value=posts,time=604800)
+			template_values = {'posts': posts}
+			template_values['all'] = False
 		path = "index.html"
-		template_values = {'posts': posts}
 		self.response.out.write(template.render(path, template_values))
 
 class CronHandler(webapp2.RequestHandler):
