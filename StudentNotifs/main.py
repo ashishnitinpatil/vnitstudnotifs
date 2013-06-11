@@ -7,8 +7,8 @@ from google.appengine.ext import db
 from google.appengine.api import urlfetch
 from google.appengine.api import memcache
 
-CONSUMER_KEY = 'iOZsPRzyaQXWTGAJfCI1Q'
-CONSUMER_SECRET = 'ZeFtG1JWV2TOeAB9FNoRwLqnKtDB5HsI2kl3tdAY'
+CONSUMER_KEY = 'iOZsPRzyaQXWTGAJfCI1Q' # App key, obtained from dev.twitter.com when app was registered.
+CONSUMER_SECRET = '' # App secret, to be kept so.
 if os.environ.get('SERVER_SOFTWARE','').startswith('Devel'):
 	# This is when testing the app on local server
     CALLBACK = 'http://localhost:9991/oauth/callback'
@@ -218,7 +218,7 @@ class CallbackHandler(webapp2.RequestHandler):
 def TweetHandler(status):
 	auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
 	key = "1495763953-x3OrqBgJqwChB9sPWgeUrvJdZMZtNGkIoptPFN2"
-	secret = "pYVEnD5nJCOZAPBp11FWxib91a8wsICvydVuyLyx1g"
+	secret = "" # Access Token secret obtained from running the CallbackHandler.
 	auth.set_access_token(key, secret)
 	api = tweepy.API(auth)
 	api.update_status(status)
