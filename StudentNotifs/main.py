@@ -8,7 +8,7 @@ from google.appengine.api import urlfetch
 from google.appengine.api import memcache
 
 CONSUMER_KEY = 'iOZsPRzyaQXWTGAJfCI1Q'
-CONSUMER_SECRET = '' # App secret, to be kept secret, generated from Twitter-Dev when app registered
+CONSUMER_SECRET = 'ZeFtG1JWV2TOeAB9FNoRwLqnKtDB5HsI2kl3tdAY'
 if os.environ.get('SERVER_SOFTWARE','').startswith('Devel'):
 	# This is when testing the app on local server
     CALLBACK = 'http://localhost:9991/oauth/callback'
@@ -218,10 +218,17 @@ class CallbackHandler(webapp2.RequestHandler):
 def TweetHandler(status):
 	auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
 	key = "1495763953-x3OrqBgJqwChB9sPWgeUrvJdZMZtNGkIoptPFN2"
-	secret = "" # Access token secret, to be kept secret, generated from CallbackHandler
+	secret = "pYVEnD5nJCOZAPBp11FWxib91a8wsICvydVuyLyx1g"
 	auth.set_access_token(key, secret)
 	api = tweepy.API(auth)
 	api.update_status(status)
+
+
+class AboutHandler(webapp2.RequestHandler):
+    def get(self):
+		path = "about.html"
+		template_values = {}
+		self.response.out.write(template.render(path, template_values))
 
 #Some garbage...might come handy later...So didn't throw it out.
 #class CleanHandler(webapp2.RequestHandler):
@@ -246,4 +253,4 @@ def TweetHandler(status):
 #		template_values2 = {'posts':posts}
 #		self.response.out.write(template.render(path, template_values2))
 
-app = webapp2.WSGIApplication([('/?', MainHandler),('/check/?', CronHandler)], debug=True)
+app = webapp2.WSGIApplication([('/?', MainHandler),('/check/?', CronHandler),('/about/?', AboutHandler)], debug=True)
