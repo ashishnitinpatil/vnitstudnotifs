@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<head>
+<style type="text/css">
+	body{
+		margin:50px 150px 75px;
+		text-align:left;
+		background:#FFFFFF;
+		}
+	a{
+		text-decoration: none;
+		}
+	a:hover{
+		text-decoration: underline;
+		}
+	.post-title{
+		position: relative;
+		color:blue;
+		}
+	.post-date{
+		position: absolute;
+		right: 0px;
+		bottom: 0px;
+		color: #999;
+		}
+	.post-content{
+		margin-top: 5px;
+		}
+</style>
+</head>
+<html>
+<title>Student Notifications Checker</title>
+<body><b><h2>Latest (max. week old) <a href="http://www.vnit.ac.in/index.php?option=com_content&view=article&id=448&Itemid=214">VNIT Student Notifications</a></h2></b>
+<a href="/?q=all">Click here</a> to show all notifications.<br/><hr><br/>
+<ol>
+{% for pst in posts %}
+	<li><div class="post-title"><font size="4"><a href={{pst.url}}>{{pst.title}}</a></font>
+	<div class="post-date"><font size="2">{{pst.created}}</font></div></div></li>
+	<br/>
+{% endfor %}
+</ol>
+</body>
+</html>
+  
