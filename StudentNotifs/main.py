@@ -7,15 +7,13 @@ from google.appengine.ext import db
 from google.appengine.api import urlfetch
 from google.appengine.api import memcache
 
+CONSUMER_KEY = 'iOZsPRzyaQXWTGAJfCI1Q'
+CONSUMER_SECRET = '' # App secret, to be kept secret, generated from Twitter-Dev when app registered
 if os.environ.get('SERVER_SOFTWARE','').startswith('Devel'):
 	# This is when testing the app on local server
-    CONSUMER_KEY = 'iOZsPRzyaQXWTGAJfCI1Q'
-    CONSUMER_SECRET = 'ZeFtG1JWV2TOeAB9FNoRwLqnKtDB5HsI2kl3tdAY'
     CALLBACK = 'http://localhost:9991/oauth/callback'
 else:
 	# Actual deployment data
-    CONSUMER_KEY = 'iOZsPRzyaQXWTGAJfCI1Q'
-    CONSUMER_SECRET = 'ZeFtG1JWV2TOeAB9FNoRwLqnKtDB5HsI2kl3tdAY'
     CALLBACK = 'https://vnitsiteupdates.appspot.com/oauth/callback'
 
 Student_Notifications_Url = "http://www.vnit.ac.in/index.php?option=com_content&view=article&id=448&Itemid=214"
@@ -220,7 +218,7 @@ class CallbackHandler(webapp2.RequestHandler):
 def TweetHandler(status):
 	auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
 	key = "1495763953-x3OrqBgJqwChB9sPWgeUrvJdZMZtNGkIoptPFN2"
-	secret = "pYVEnD5nJCOZAPBp11FWxib91a8wsICvydVuyLyx1g"
+	secret = "" # Access token secret, to be kept secret, generated from CallbackHandler
 	auth.set_access_token(key, secret)
 	api = tweepy.API(auth)
 	api.update_status(status)
