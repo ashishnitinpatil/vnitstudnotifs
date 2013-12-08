@@ -1,14 +1,16 @@
 Please refer to the LICENSE file for licensing of the project.
 
-Project - VNIT STUDENT NOTIFICATION UPDATES
+Project - VNIT STUDENT NOTIFICATIONS UPDATES
 CREATOR - Ashish Nitin Patil aka !mmorta!
 CREATED - 12th of June, 2013 (v2)
+UPDATED - 9th of December, 2013 (v3)
 
 Summary of the Project -
 	The app runs 'cron' jobs periodically (as per settings in cron.yaml),
 	checking for any new updates on the Student Notifications page.
 	If there are any new links, they are stored in the database,
-	& the corresponding link title is tweeted on 'VNITStudNotifs' twitter account.
-	The app.yaml contains url Handler settings, which runs main.py for everything.
+	& the corresponding link title is tweeted on '@VNITStudNotifs' (Twitter).
+	The app.yaml contains url Handler settings, which runs the main.py.
 	The .html files are templates used by the corresponding url Handlers.
 	The tweepy directory contains the "tweepy" twitter library for python.
+    The bs4 directory contains the "BeautifulSoup4" library for python.
