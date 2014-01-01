@@ -66,11 +66,12 @@ class MainHandler(webapp2.RequestHandler):
                 memcache.set(key="latest_posts",value=posts,time=604800)
             template_values = {'posts': posts}
             template_values['all'] = False
+        template_values['url'] = Student_Notifications_Url[-1]
         path = "index.html"
         self.response.out.write(template.render(path, template_values))
 
 class CronHandler(webapp2.RequestHandler):
-    def get_page(self,url):
+    def get_page(self, url):
         """
         Fetches the content displayed on the page of given url
         """
@@ -79,52 +80,11 @@ class CronHandler(webapp2.RequestHandler):
         try:
             page = urllib.urlopen(url)
             content = page.read()
+            logging.info("Successfully fetched url - "+url)
             return str(content)
         except:
-            logging.error('Unable to fetch Url')
+            logging.error('Unable to fetch Url - '+url)
             return ""
-
-    def verify_notifications_url(self):
-        # To be safe, fetch the Notifications Url from the main page of vnit
-        global Student_Notifications_Url
-        vnit_main_url = "http://www.vnit.ac.in"
-        vnit_homepage = self.get_page(vnit_main_url)
-        vnit_home = BeautifulSoup(vnit_homepage)
-        for spans in vnit_home.findAll('span'):
-            if spans.string.strip().lower() == "student notice board":
-                notice_board_rel_link = spans.previous.get('href')
-                break
-        else:
-            logging.error("Student Notifications URL from homepage failure")
-            notice_board_rel_link = \
-                "/index.php?option=com_content&view=article&id=612&Itemid=214"
-        new_url = urlparse.urljoin(vnit_main_url, notice_board_rel_link)
-        if not new_url in Student_Notifications_Url:
-            logging.error("Change in Notification Url to {0}".format( new_url))
-            Student_Notifications_Url.append(new_url)
-
-##    def get_next_target(self,page):
-##        """
-##        Parses the page & returns the url, title text
-##        & the end position to get next target
-##        """
-##        if page:
-##            start_link = page.find('href=')
-##            if start_link == -1:
-##                return None, None, 0
-##            start_quote = page.find('"', start_link)
-##            end_quote = page.find('"', start_quote + 1)
-##            url = page[start_quote + 1:end_quote]
-##            start_tag = page.find('">', end_quote)
-##            if '<' in page[start_tag+2:start_tag+3]:
-##                start_tag += page[start_tag+1:].find('">')
-##            end_tag = page.find('</', start_tag)
-##            title = page[start_tag+2:end_tag]
-##            if '>' in title:
-##                title = title[title.rfind('>')+1:]
-##            return title, url, end_quote
-##        else:
-##            return False, False, False
 
     def get_all_links(self, main_url, content):
         """
@@ -151,7 +111,6 @@ class CronHandler(webapp2.RequestHandler):
         Fetches the Student_Notifications_Url page. Grabs all the relevant links
         & their titles, stores every new link & tweets it out!
         """
-        self.verify_notifications_url()
         for stud_url in Student_Notifications_Url:
             notifs = self.get_page(stud_url) # fetch page
             # Now, extract the content from the page
@@ -180,7 +139,8 @@ class CronHandler(webapp2.RequestHandler):
                     new_links[cur_title] = cur_url
 
             if new_links:
-                self.response.out.write("<br/><b>New links found...</b><br/>")
+                self.response.out.write("<br/><b>New links found on </b><br/>"
+                    + stud_url)
                 memcache.delete("all_posts")
                 memcache.delete("latest_posts")
             else:
@@ -198,10 +158,59 @@ class CronHandler(webapp2.RequestHandler):
                     .format(title, url)
                     )
 
+class CronUrlHandler(webapp2.RequestHandler):
+    def get_page(self, url):
+        """
+        Fetches the content displayed on the page of given url
+        """
+        #page = urlfetch.fetch(url).content
+        #logging.info(page)
+        try:
+            page = urllib.urlopen(url)
+            content = page.read()
+            logging.info("Successfully fetched url - "+url)
+            return str(content)
+        except:
+            logging.error('Unable to fetch Url - '+url)
+            return ""
+
+    def verify_notifications_url(self):
+        # To be safe, fetch the Notifications Url from the main page of vnit
+        global Student_Notifications_Url
+        vnit_main_url = "http://www.vnit.ac.in"
+        vnit_homepage = self.get_page(vnit_main_url)
+        vnit_home = BeautifulSoup(vnit_homepage)
+        for spans in vnit_home.findAll('span'):
+            if spans.string.strip().lower() == "student notice board":
+                notice_board_rel_link = spans.previous.get('href')
+                logging.info("Got a rel link (verify_notifications_url)")
+                break
+        else:
+            logging.error("Verify Notifications' Url failure")
+            notice_board_rel_link = \
+                "/index.php?option=com_content&view=article&id=612&Itemid=214"
+        new_url = urlparse.urljoin(vnit_main_url, notice_board_rel_link)
+        if not new_url in Student_Notifications_Url:
+            logging.error("Change in Notification Url to {0}".format( new_url))
+            Student_Notifications_Url.append(new_url)
+
+    def get(self):
+        """
+        Fetches the main VNIT page.
+        Parses & checks for change in Notifications Url & updates accordingly.
+        """
+        self.verify_notifications_url()
+
 class AboutHandler(webapp2.RequestHandler):
     def get(self):
         path = "about.html"
-        template_values = {}
+        template_values = {'url': Student_Notifications_Url[-1]}
+        self.response.out.write(template.render(path, template_values))
+
+class ChangeLogHandler(webapp2.RequestHandler):
+    def get(self):
+        path = "changelog.html"
+        template_values = {'url': Student_Notifications_Url[-1]}
         self.response.out.write(template.render(path, template_values))
 
 class UrlHandler(webapp2.RequestHandler):
@@ -299,13 +308,13 @@ def TweetHandler(tweet):
     """
     Tweet the "tweet" to @VNITStudNotifs on Twitter using tweepy
     """
-    CONSUMER_KEY = "CONSUMER KEY"
+    CONSUMER_KEY = 'Consumer Key'
     # App key, obtained from dev.twitter.com when app was registered.
-    CONSUMER_SECRET = "CCONSUMER SECRET"
+    CONSUMER_SECRET = 'Secret'
     # App secret, to be kept so.
     auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
-    key = "OAUTH KEY"
-    secret = "OAUTH SECRET"
+    key = "oauth key"
+    secret = "oauth secret"
     # Access Token secret obtained from running the CallbackHandler.
     auth.set_access_token(key, secret)
     api = tweepy.API(auth)
@@ -313,7 +322,7 @@ def TweetHandler(tweet):
 
 def handle_404(request, response, exception):
     logging.exception(exception)
-    response.write("Oops! Yoou seem to have wandered off! " +
+    response.write("Oops! You seem to have wandered off! " +
                    "The requested page does not exist.")
     response.set_status(404)
 
@@ -325,8 +334,10 @@ def handle_500(request, response, exception):
 
 app = webapp2.WSGIApplication([('/?', MainHandler),
                               ('/check/?', CronHandler),
+                              ('/checkurl/?', CronUrlHandler),
                               (r'/post/(\d+)/?',PostPermaHandler),
                               ('/about/?', AboutHandler),
+                              ('/changelog/?', ChangeLogHandler),
                               ('/url/?', UrlHandler),
                               ('/oauth/callback/?', CallbackHandler),
                               ('/oauth/?', OauthHandler)],

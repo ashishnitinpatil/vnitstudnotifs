@@ -22,26 +22,15 @@
 <!--End of Google Analytics script-->
 </head>
 <html>
-<title>Student Notifications Updates</title>
-<body>
-{% if not all %}
-<b><h2>Latest <a href="{{url}}">Student Notifications</a></b><br/></h2>
-<a href="/?q=all">Click here</a> to show all notifications.<br/><hr><br/>
-{% else %}
-<b><h2>All <a href="{{url}}">Student Notifications</a></h2></b>
-<a href="/">Click here</a> to show latest notifications.<br/><hr><br/>
-{% endif %}
-<ol>
-{% for pst in posts %}
-	<li>
-        <div class="post-title"><font size="4">
-        <a href="/post/{{ pst.key.id }}">{{ pst.title }}</a></font>
-	       <div class="post-date"><font size="2">{{ pst.created }}</font></div>
-        </div>
-    </li>
-	<br/>
-{% endfor %}
-</ol><br/>
-<div style="text-align:center;font-size:20px"><a href="/about">About this Website</a></div><br/>
+<title>Changelog</title>
+<body><h2><b><a href="https://vnitstudentnotifications.appspot.com/changelog">Changelog v4</a></b></h2>
+<ul>
+<li>Used <a href="https://ifttt.com/recipes/137489">IFTTT</a> to post the <a href="https://twitter.com/VNITStudNotifs">tweets</a> to our <a href="https://www.facebook.com/vnitstudnotifs">new FaceBook page</a></li>
+<li>Updated the <a href="/about">About page</a> & <a href="https://github.com/ashishnitinpatil/vnitstudnotifs/blob/master/README">README</a> accordingly</li>
+<li>Rendered the <a href="{{url}}">correct & latest url</a> dynamically wherever mentioned</li>
+<li>Various silly fixes to static content</li>
+<li>Added a Changelog! :-p</li>
+</ul>
+Please check out the <a href="https://github.com/ashishnitinpatil/vnitstudnotifs">repo for this Open Source project!</a>
 </body>
 </html>
