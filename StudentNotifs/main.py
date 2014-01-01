@@ -103,7 +103,11 @@ class CronHandler(webapp2.RequestHandler):
                     title = url
                 if not title.startswith("<!--"):
                     title = re.sub("[^A-Za-z0-9().\-\s]+"," ",title)
-                    links[title] = url
+                    if not title in links:
+                        links[title] = url
+                    else:
+                        links["{0} ({1}) ".format(title,
+                            urlparse.urlsplit(url).path.split('/')[-1])] = url
         return links
 
     def get(self):
@@ -111,7 +115,7 @@ class CronHandler(webapp2.RequestHandler):
         Fetches the Student_Notifications_Url page. Grabs all the relevant links
         & their titles, stores every new link & tweets it out!
         """
-        for stud_url in Student_Notifications_Url:
+        for stud_url in Student_Notifications_Url[::-1]:
             notifs = self.get_page(stud_url) # fetch page
             # Now, extract the content from the page
             content = notifs[notifs.find('<!-- BEGIN: CONTENT -->'):
@@ -123,7 +127,7 @@ class CronHandler(webapp2.RequestHandler):
             All_Posts = memcache.get("all_posts")
             if not All_Posts:
                 All_Posts = db.GqlQuery(
-                    "SELECT * FROM Posts ORDER BY created DESC").fetch(300)
+                    "SELECT * FROM Posts ORDER BY created DESC").fetch(500)
             All_Links = dict()
             All_Urls = set()
             All_Titles = set()
@@ -135,8 +139,12 @@ class CronHandler(webapp2.RequestHandler):
             # Check for "new posts" from the fetched content
             new_links = {}
             for cur_title, cur_url in cur_links.items():
-                if not cur_title in All_Titles and not cur_url in All_Urls:
+                if not cur_title in All_Titles:
                     new_links[cur_title] = cur_url
+                elif not cur_url in All_Urls:
+                    new_links["{0} ({1}) ".format(cur_title,
+                        urlparse.urlsplit(cur_url).path.split('/')[-1])] = \
+                            cur_url
 
             if new_links:
                 self.response.out.write("<br/><b>New links found on </b><br/>"
