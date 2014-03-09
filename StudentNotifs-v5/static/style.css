@@ -1,0 +1,33 @@
+body{
+	background:#222222 url('/static/bg_img.jpg') repeat fixed center;
+	color: white;
+	margin: 50px 150px 75px;
+	text-align:left;
+	}
+a{
+	color: orange;
+	text-decoration: none;
+	}
+a:hover{
+	text-decoration: underline;
+	}
+.post-title{
+	color: orange;
+	position: relative;
+	}
+.post-date{
+	position: absolute;
+	right: 0px;
+	bottom: 0px;
+	color: #999;
+	}
+.post-content{
+	margin-top: 5px;
+	}
+title{
+    font: Arial;
+    color: red;
+    }
+p{
+    text-align: center;
+    }

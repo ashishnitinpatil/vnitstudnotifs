@@ -1,9 +1,9 @@
 Please refer to the LICENSE file for licensing of the project.
 
-Project - VNIT STUDENT NOTIFICATIONS
+Project - VNIT STUDENT NOTIFICATIONS UPDATES
 CREATOR - Ashish Nitin Patil aka !mmorta!
 CREATED - 12th of June, 2013 (v2)
-UPDATED - 9th of March, 2014 (v5) [Jan 1st, 2014 (v4)]
+UPDATED - 1st of January, 2014 (v4)
 
 Summary of the Project -
 	The app runs 'cron' jobs periodically (as per settings in cron.yaml),
