@@ -1,33 +1,17 @@
-<!DOCTYPE html>
-<html>
-<head>
-	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-	<link rel="shortcut icon" href="/static/favicon.ico" />
-	<meta name="description" content="VNIT Student Notifications is a web-app for giving updates of the latest notifications on VNIT's Student Notice Board." />
-	<meta name="keywords" content="VNITStudentNotifications, VNITStudNotifs, VNIT, Nagpur, NIT, Student, Notifications, Updates" />
-	<meta http-equiv="cache-control" content="no-store" />
-	<meta http-equiv="content-language" content="en-US" />
-	<link rel="stylesheet" href="/static/style.css" type="text/css" media="screen" />
-	<!--Google Analytics-->
-	<script>
-	  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-	  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-	  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-	  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+{% extends "base.html" %}
 
-	  ga('create', 'UA-41772592-1', 'vnitstudentnotifications.appspot.com');
-	  ga('send', 'pageview');
+{% block title %}Changelog{% endblock %}
 
-	</script>
-	<!--End of Google Analytics script-->
-	<title>Changelog</title>
-</head>
-<body>
+{% block content %}
 	<h2><b><a href="/changelog">Changelog</a></b></h2>
 	<ul>
-	<li>Updates now include links in the "marquee" too (rotating notifications below header). (v5)
-	<li>Separate templates directory. (v5)
-	<li>Added some pretty CSS (v5)
+	<li>Added facebook like, subscribe & twitter follow buttons</li>
+	<li>Added "Last Checked",(v5.1)</li>
+	<li>Better templates (v5.1)</li>
+	<li>Much better code for proxy routing (v5.1)</li>
+	<li>Updates now include links in the "marquee" too (rotating notifications below header). (v5)</li>
+	<li>Separate templates directory. (v5)</li>
+	<li>Added some pretty CSS (v5)</li>
 	<li>Used <a href="https://ifttt.com/recipes/137489">IFTTT</a> to post the <a href="https://twitter.com/VNITStudNotifs">tweets</a> to our <a href="https://www.facebook.com/vnitstudnotifs">new FaceBook page</a></li>
 	<li>Updated the <a href="/about">About page</a> & <a href="https://github.com/ashishnitinpatil/vnitstudnotifs/blob/master/README">README</a> accordingly</li>
 	<li>Rendered the <a href="{{url}}">correct & latest url</a> dynamically wherever mentioned</li>
@@ -36,5 +20,4 @@
 	<li>Changed code to accommodate duplicate titles</li>
 	</ul>
 	Do check out the <a href="https://github.com/ashishnitinpatil/vnitstudnotifs">repo for this Open Source project!</a>
-</body>
-</html>
+{% endblock %}

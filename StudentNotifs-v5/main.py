@@ -35,6 +35,43 @@ class Posts(db.Model):
     title = db.StringProperty(required=True)
     created = db.DateTimeProperty(auto_now_add=True)
 
+def get_page(url, proxy=True):
+    """
+    Fetches the content displayed on the page of given url
+    """
+    #page = urlfetch.fetch(url).content
+    #logging.info(page)
+    memcache.set("last_checked", datetime.datetime.now())
+    if proxy:
+        memcache.set("proxy", "YES")
+        proxy_url_main = 'http://vnitstudnotb.herokuapp.com/get/'
+        dont = False
+        if url in ['http://www.vnit.ac.in', 'http://www.vnit.ac.in/']:
+            what = '1'
+        elif 'id=448' in url:
+            what = '2'
+        elif 'id=612' in url:
+            what = '3'
+        else:
+            dont = True
+            logging.critical('New url for proxy!!')
+        if dont:
+            return ""
+        else:
+            url = proxy_url_main + what
+    try:
+        page = urllib.urlopen(url)
+        content = page.read()
+        if 'Your IP address has recently been detected as' in content:
+            logging.critical("Suspected honeypot blocking!!")
+            memcache.set("blocking", "YES")
+            assert False
+        logging.info("Successfully fetched url - "+url)
+        return str(content)
+    except:
+        logging.error('Unable to fetch Url - '+url)
+        return ""
+
 class MainHandler(webapp2.RequestHandler):
     def get(self):
         """
@@ -68,24 +105,13 @@ class MainHandler(webapp2.RequestHandler):
             template_values = {'posts': posts}
             template_values['all'] = False
         template_values['url'] = Student_Notifications_Url[-1]
+        template_values['proxy'] = memcache.get('proxy')
+        template_values['blocking'] = memcache.get('blocking')
+        template_values['last_checked'] = memcache.get('last_checked')
         path = "templates/index.html"
         self.response.out.write(template.render(path, template_values))
 
 class CronHandler(webapp2.RequestHandler):
-    def get_page(self, url):
-        """
-        Fetches the content displayed on the page of given url
-        """
-        #page = urlfetch.fetch(url).content
-        #logging.info(page)
-        try:
-            page = urllib.urlopen(url)
-            content = page.read()
-            logging.info("Successfully fetched url - "+url)
-            return str(content)
-        except:
-            logging.error('Unable to fetch Url - '+url)
-            return ""
 
     def get_all_links(self, main_url, content):
         """
@@ -137,7 +163,7 @@ class CronHandler(webapp2.RequestHandler):
         & their titles, stores every new link & tweets it out!
         """
         for stud_url in Student_Notifications_Url[::-1]:
-            notifs = self.get_page(stud_url) # fetch page
+            notifs = get_page(stud_url) # fetch page
             # Now, extract the content from the page
             content = notifs[notifs.find('<!-- BEGIN: CONTENT -->'):
                             notifs.find('<!-- END: CONTENT -->')]
@@ -191,32 +217,27 @@ class CronHandler(webapp2.RequestHandler):
                     .format(title, url)
                     )
 
+class ViewHandler(webapp2.RequestHandler):
+    def get(self):
+        content = get_page(Student_Notifications_Url[-1])
+        if content:
+            self.response.out.write(str(content))
+        else:
+            self.response.out.write("Failed to get a response")
+
 class CronUrlHandler(webapp2.RequestHandler):
-    def get_page(self, url):
-        """
-        Fetches the content displayed on the page of given url
-        """
-        #page = urlfetch.fetch(url).content
-        #logging.info(page)
-        try:
-            page = urllib.urlopen(url)
-            content = page.read()
-            logging.info("Successfully fetched url - "+url)
-            return str(content)
-        except:
-            logging.error('Unable to fetch Url - '+url)
-            return ""
 
     def verify_notifications_url(self):
         # To be safe, fetch the Notifications Url from the main page of vnit
         global Student_Notifications_Url
         vnit_main_url = "http://www.vnit.ac.in"
-        vnit_homepage = self.get_page(vnit_main_url)
+        vnit_homepage = get_page(vnit_main_url)
         vnit_home = BeautifulSoup(vnit_homepage)
         for spans in vnit_home.findAll('span'):
             if spans.string.strip().lower() == "student notice board":
                 notice_board_rel_link = spans.previous.get('href')
-                logging.info("Got a rel link (verify_notifications_url)")
+                logging.info("Got a rel link (verify_notifications_url)"
+                              + notice_board_rel_link)
                 break
         else:
             logging.error("Verify Notifications' Url failure")
@@ -343,13 +364,13 @@ def TweetHandler(tweet):
     """
     Tweet the "tweet" to @VNITStudNotifs on Twitter using tweepy
     """
-    CONSUMER_KEY = 'Twitter Consumer key'
+    CONSUMER_KEY = 'iOZsPRzyaQXWTGAJfCI1Q'
     # App key, obtained from dev.twitter.com when app was registered.
-    CONSUMER_SECRET = 'Twitter Consumer secret'
+    CONSUMER_SECRET = 'ZeFtG1JWV2TOeAB9FNoRwLqnKtDB5HsI2kl3tdAY'
     # App secret, to be kept so.
     auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
-    key = "Twitter App key"
-    secret = "Twitter App secret"
+    key = "1495763953-x3OrqBgJqwChB9sPWgeUrvJdZMZtNGkIoptPFN2"
+    secret = "pYVEnD5nJCOZAPBp11FWxib91a8wsICvydVuyLyx1g"
     # Access Token secret obtained from running the CallbackHandler.
     auth.set_access_token(key, secret)
     api = tweepy.API(auth)
@@ -370,6 +391,7 @@ def handle_500(request, response, exception):
 app = webapp2.WSGIApplication([('/?', MainHandler),
                               ('/check/?', CronHandler),
                               ('/checkurl/?', CronUrlHandler),
+                              ('/view/?', ViewHandler),
                               (r'/post/(\d+)/?',PostPermaHandler),
                               ('/about/?', AboutHandler),
                               ('/changelog/?', ChangeLogHandler),
