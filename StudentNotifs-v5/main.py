@@ -41,7 +41,8 @@ def get_page(url, proxy=True):
     """
     #page = urlfetch.fetch(url).content
     #logging.info(page)
-    memcache.set("last_checked", datetime.datetime.now())
+    last_checked = datetime.datetime.utcnow() + datetime.timedelta(hours=5.5)
+    memcache.set("last_checked", last_checked)
     if proxy:
         memcache.set("proxy", "YES")
         proxy_url_main = 'http://vnitstudnotb.herokuapp.com/get/'
