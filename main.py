@@ -15,13 +15,6 @@ from lxml import html
 import tweepy
 
 
-if os.environ.get('SERVER_SOFTWARE','').startswith('Devel'):
-    # This is when testing the app on local server
-    CALLBACK = 'http://localhost:9991/oauth/callback'
-else:
-    # Actual deployment data
-    CALLBACK = 'https://vnitsiteupdates.appspot.com/oauth/callback'
-
 Student_Notifications_Url = ["http://www.vnit.ac.in"
             "/index.php?option=com_content&view=article&id=448&Itemid=214",
                              "http://www.vnit.ac.in"
@@ -334,77 +327,6 @@ class PostPermaHandler(webapp2.RequestHandler):
             self.response.out.write("The post ID is invalid.")
 
 
-# Tweepy requirements
-
-class OAuthToken(db.Model):
-    token_key = db.StringProperty(required=True)
-    token_secret = db.StringProperty(required=True)
-
-class OauthHandler(webapp2.RequestHandler):
-    def get(self):
-        # Build a new oauth handler and display authorization url to user.
-        auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET, CALLBACK)
-        try:
-            path = "templates/auth.html"
-            template_values = {"authurl": auth.get_authorization_url(),
-                               "request_token": auth.request_token}
-            self.response.out.write(template.render(path, template_values))
-        except tweepy.TweepError, e:
-            # Failed to get a request token
-            self.response.out.write(template.render('templates/error.html',
-                                                    {'message': e}))
-            return
-
-        # We must store the request token for later use in the callback page.
-        request_token = OAuthToken(token_key=auth.request_token.key,
-                                   token_secret=auth.request_token.secret)
-        request_token.put()
-
-# Callback page (/oauth/callback)
-class CallbackHandler(webapp2.RequestHandler):
-    def get(self):
-        oauth_token = self.request.get("oauth_token", None)
-        oauth_verifier = self.request.get("oauth_verifier", None)
-        if oauth_token is None:
-            # Invalid request!
-            path = "templates/error.html"
-            template_values = {'message': 'Missing required parameters!'}
-            self.response.out.write(template.render(path, template_values))
-            return
-
-        # Lookup the request token
-        request_token = OAuthToken.gql("WHERE token_key=:key",
-                                        key=oauth_token).get()
-        if request_token is None:
-            # We do not seem to have this request token, show an error.
-            path = "templates/error.html"
-            template_values = {'message': 'Invalid token!'}
-            self.response.out.write(template.render(path, template_values))
-            return
-
-        # Rebuild the auth handler
-        auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
-        auth.set_request_token(request_token.token_key,
-                               request_token.token_secret)
-
-        # Fetch the access token
-        try:
-            auth.get_access_token(oauth_verifier)
-        except tweepy.TweepError, e:
-            # Failed to get access token
-            path = "templates/error.html"
-            template_values = {'message': e}
-            self.response.out.write(template.render(path, template_values))
-            return
-
-        # So now we could use this auth handler.
-        # Here we will just display the access token key&secret
-        path = "templates/callback.html"
-        template_values = {'access_token': auth.access_token}
-        self.response.out.write(template.render(path, template_values))
-        auth_api = tweepy.API(auth)
-
-
 # The dude of all the functions!!!
 def TweetHandler(tweet):
     """Tweets the "tweet" to @VNITStudNotifs on Twitter using tweepy"""
@@ -414,9 +336,9 @@ def TweetHandler(tweet):
     CONSUMER_SECRET = 'ZeFtG1JWV2TOeAB9FNoRwLqnKtDB5HsI2kl3tdAY'
     # App secret, to be kept so.
     auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
+    # Access Tokens, obtained from dev.twitter, to be kept secret.
     key = "1495763953-x3OrqBgJqwChB9sPWgeUrvJdZMZtNGkIoptPFN2"
     secret = "pYVEnD5nJCOZAPBp11FWxib91a8wsICvydVuyLyx1g"
-    # Access Token secret obtained from running the CallbackHandler.
     auth.set_access_token(key, secret)
     api = tweepy.API(auth)
     api.update_status(tweet[:140])
@@ -447,9 +369,7 @@ app = webapp2.WSGIApplication([('/?',                MainHandler),
                                (r'/post/(\d+)/?',    PostPermaHandler),
                                ('/about/?',          AboutHandler),
                                ('/changelog/?',      ChangeLogHandler),
-                               ('/url/?',            UrlHandler),
-                               ('/oauth/callback/?', CallbackHandler),
-                               ('/oauth/?',          OauthHandler)],
+                               ('/url/?',            UrlHandler)],
                               debug=True)
 
 app.error_handlers[404] = handle_404
