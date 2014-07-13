@@ -173,8 +173,8 @@ class CronHandler(webapp2.RequestHandler):
             content = notifs[notifs.find('<!-- BEGIN: CONTENT -->'):
                             notifs.find('<!-- END: CONTENT -->')]
             cur_links = self.get_all_links('https://www.vnit.ac.in', content)
-            cur_links.update(self.get_marquee_links('https://www.vnit.ac.in',
-                                                    notifs))
+            # cur_links.update(self.get_marquee_links('https://www.vnit.ac.in',
+                                                    # notifs))
             # logging.info(cur_links)
 
             # Gather pre-existing posts data
