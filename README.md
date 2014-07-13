@@ -21,3 +21,4 @@ Student Notifications Checker
 - The `.html` files are templates used by the corresponding url Handlers.
 - We use the [tweepy](https://github.com/tweepy/tweepy) python library for twitter API, to post our tweets.
 - The [bs4 directory](https://github.com/ashishnitinpatil/vnitstudnotifs/tree/master/bs4) containing the [BeautifulSoup4](http://www.crummy.com/software/BeautifulSoup/) library is what we currently use to parse html of the [Student Notifications page](http://vnit.ac.in/index.php?option=com_content&view=article&id=612&Itemid=214).
+- We use [bitly_api](https://github.com/bitly/bitly-api-python/) to shorten the update urls before tweeting them.
