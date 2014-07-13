@@ -337,16 +337,22 @@ class PostPermaHandler(webapp2.RequestHandler):
 def TweetHandler(tweet):
     """Tweets the "tweet" to @VNITStudNotifs on Twitter using tweepy"""
 
-    CONSUMER_KEY = 'iOZsPRzyaQXWTGAJfCI1Q'
-    # App key, obtained from dev.twitter.com when app was registered.
-    CONSUMER_SECRET = 'ZeFtG1JWV2TOeAB9FNoRwLqnKtDB5HsI2kl3tdAY'
-    # App secret, to be kept so.
+    # App key, secret, obtained from dev.twitter.com when app was registered.
+    # To be kept secret.
+    CONSUMER_KEY = 'API Key'
+    CONSUMER_SECRET = 'API Secret'
+
     auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
+
     # Access Tokens, obtained from dev.twitter, to be kept secret.
-    key = "1495763953-x3OrqBgJqwChB9sPWgeUrvJdZMZtNGkIoptPFN2"
-    secret = "pYVEnD5nJCOZAPBp11FWxib91a8wsICvydVuyLyx1g"
-    auth.set_access_token(key, secret)
+    token_key = "access token_key"
+    token_secret = "access token_secret"
+
+    auth.set_access_token(token_key, token_secret)
+
+    # Connect
     api = tweepy.API(auth)
+    # Update Status
     api.update_status(tweet[:140])
 
 
