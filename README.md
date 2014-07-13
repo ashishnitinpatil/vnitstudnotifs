@@ -4,7 +4,7 @@ Student Notifications Checker
 **Author**  - Ashish Nitin Patil  
 **Created** - 12th of June, 2013 (v2)  
 **Updated** - 13th of July, 2014 (v5.2) [5-Apr v5.1, 9-Mar v5, 1-Jan v4]  
-**Licence** - Creative Commons Attribution 4.0 Unported License.
+**Licence** - BSD License (Free for commercial use).
 
 
 ### Project Summary
