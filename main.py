@@ -13,6 +13,7 @@ from google.appengine.api import memcache
 from bs4 import BeautifulSoup
 from lxml import html
 import tweepy
+import bitly_api
 
 
 Student_Notifications_Url = ["http://www.vnit.ac.in"
@@ -214,9 +215,14 @@ class CronHandler(webapp2.RequestHandler):
                 title, url = new, new_links[new]
                 All_Links[title] = url
                 logging.info('Title -- '+title+'Url -- '+url)
+                # Save the post
                 pst = Posts(url = url, title = title)
                 pst.put()
-                TweetHandler(' - '.join((title, url)))
+                # Shorten the url
+                shortened_url = UrlShortener(url)
+                # Tweet the Post
+                TweetHandler(' - '.join((title, shortened_url)))
+                # Display the new post in the response
                 self.response.out.write(
                     "<br>Title --> {0}<br>Url --> <a href={1}>{1}</a><br>"
                     .format(title, url)
@@ -342,6 +348,23 @@ def TweetHandler(tweet):
     auth.set_access_token(key, secret)
     api = tweepy.API(auth)
     api.update_status(tweet[:140])
+
+
+# Using the Bitly API, shorten the post url
+def UrlShortener(url):
+    """Shortens the given url with the help of Bit.ly API using bitly_api."""
+
+    # Register & obtain following from https://bitly.com/a/settings/advanced
+    # Keep them secret
+    LOGIN = 'o_login'
+    API_KEY = 'R_apikey'
+
+    # Connect
+    con = bitly_api.Connection(LOGIN, API_KEY)
+    # Shorten
+    response = con.shorten(url)
+
+    return response['url']
 
 
 def handle_404(request, response, exception):
