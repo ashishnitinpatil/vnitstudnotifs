@@ -5,7 +5,6 @@ import re
 import os
 import sys
 import datetime
-import tweepy
 import webapp2
 from google.appengine.ext.webapp import template
 from google.appengine.ext import db
@@ -13,6 +12,8 @@ from google.appengine.api import urlfetch
 from google.appengine.api import memcache
 from bs4 import BeautifulSoup
 from lxml import html
+import tweepy
+
 
 if os.environ.get('SERVER_SOFTWARE','').startswith('Devel'):
     # This is when testing the app on local server
@@ -27,22 +28,23 @@ Student_Notifications_Url = ["http://www.vnit.ac.in"
             "/index.php?option=com_content&view=article&id=612&Itemid=214"
                             ]
 
+
 class Posts(db.Model):
-    """
-    Databasel Model to store each update on the Student_Notifications_Url.
-    """
+    """Database Model to store each update/notification."""
+
     url = db.StringProperty(required=True)
     title = db.StringProperty(required=True)
     created = db.DateTimeProperty(auto_now_add=True)
 
+
 def get_page(url, proxy=True):
-    """
-    Fetches the content displayed on the page of given url
-    """
-    #page = urlfetch.fetch(url).content
-    #logging.info(page)
+    """Fetches the content displayed on the page of given url."""
+
+    # page = urlfetch.fetch(url).content
+    # logging.info(page)
     last_checked = datetime.datetime.utcnow() + datetime.timedelta(hours=5.5)
     memcache.set("last_checked", last_checked)
+    # Crude Proxy setup to get around Project Honeypot bans.
     if proxy:
         memcache.set("proxy", "YES")
         proxy_url_main = 'http://vnitstudnotb.herokuapp.com/get/'
@@ -67,17 +69,19 @@ def get_page(url, proxy=True):
             logging.critical("Suspected honeypot blocking!!")
             memcache.set("blocking", "YES")
             assert False
-        logging.info("Successfully fetched url - "+url)
+        logging.info("Successfully fetched url - %s"%url)
         return str(content)
     except:
-        logging.error('Unable to fetch Url - '+url)
+        logging.error('Unable to fetch Url - %s'%url)
         return ""
 
+
 class MainHandler(webapp2.RequestHandler):
+    """Displays latest (max. week old) updates, or all updates as per query."""
+
     def get(self):
-        """
-        Displays latest (max. week old) updates or all updates as per query.
-        """
+        """GET http method"""
+
         q = self.request.get("q")
         if q == "all":
             posts = memcache.get("all_posts")
@@ -112,13 +116,16 @@ class MainHandler(webapp2.RequestHandler):
         path = "templates/index.html"
         self.response.out.write(template.render(path, template_values))
 
+
 class CronHandler(webapp2.RequestHandler):
+    """The cron requests handler. Also contains required methods."""
 
     def get_all_links(self, main_url, content):
         """
         Fetches all the links with the corresponding text from the content.
-        It also completes the half urls like /main, etc. to complete url.
+        It also converts the relative urls like `/main`, etc. to complete url.
         """
+
         links = {}
         content = BeautifulSoup(content)
         for notice in content.findAll("a"):
@@ -143,6 +150,7 @@ class CronHandler(webapp2.RequestHandler):
         Fetches all the links with the corresponding text from the marquee.
         It also completes the half urls like /main, etc. to complete url.
         """
+
         links = {}
         tree = html.fromstring(content)
         for i in range(len(tree.xpath('//marquee/a/@href'))):
@@ -160,18 +168,21 @@ class CronHandler(webapp2.RequestHandler):
 
     def get(self):
         """
-        Fetches the Student_Notifications_Url page. Grabs all the relevant links
-        & their titles, stores every new link & tweets it out!
+        Fetches the Student_Notifications_Url page.
+        Grabs all the relevant links & their titles.
+        stores every new link & tweets it out!
         """
+
         for stud_url in Student_Notifications_Url[::-1]:
-            notifs = get_page(stud_url) # fetch page
+            # fetch page
+            notifs = get_page(stud_url)
             # Now, extract the content from the page
             content = notifs[notifs.find('<!-- BEGIN: CONTENT -->'):
                             notifs.find('<!-- END: CONTENT -->')]
             cur_links = self.get_all_links('https://www.vnit.ac.in', content)
             cur_links.update(self.get_marquee_links('https://www.vnit.ac.in',
                                                     notifs))
-            #logging.info(cur_links)
+            # logging.info(cur_links)
 
             # Gather pre-existing posts data
             All_Posts = memcache.get("all_posts")
@@ -218,18 +229,29 @@ class CronHandler(webapp2.RequestHandler):
                     .format(title, url)
                     )
 
+
 class ViewHandler(webapp2.RequestHandler):
+    """Displays the Student Notifications page as fetched by app."""
+
     def get(self):
+        """GET http method"""
+
         content = get_page(Student_Notifications_Url[-1])
         if content:
             self.response.out.write(str(content))
         else:
             self.response.out.write("Failed to get a response")
 
+
 class CronUrlHandler(webapp2.RequestHandler):
+    """Cron handler for checking the Notifications URL from the main page."""
 
     def verify_notifications_url(self):
-        # To be safe, fetch the Notifications Url from the main page of vnit
+        """
+        To be safe, fetch the Notifications Url from the main page of vnit.
+        Because, they once changed the url & the app was useless for a month.
+        """
+
         global Student_Notifications_Url
         vnit_main_url = "http://www.vnit.ac.in"
         vnit_homepage = get_page(vnit_main_url)
@@ -254,28 +276,49 @@ class CronUrlHandler(webapp2.RequestHandler):
         Fetches the main VNIT page.
         Parses & checks for change in Notifications Url & updates accordingly.
         """
+
         self.verify_notifications_url()
 
+
 class AboutHandler(webapp2.RequestHandler):
+    """Handles the requests for viewing the about page."""
+
     def get(self):
+        """GET http method"""
+
         path = "templates/about.html"
         template_values = {'url': Student_Notifications_Url[-1]}
         self.response.out.write(template.render(path, template_values))
 
+
 class ChangeLogHandler(webapp2.RequestHandler):
+    """Handles the requests for viewing the changelog page."""
+
     def get(self):
+        """GET http method"""
+
         path = "templates/changelog.html"
         template_values = {'url': Student_Notifications_Url[-1]}
         self.response.out.write(template.render(path, template_values))
 
+
 class UrlHandler(webapp2.RequestHandler):
+    """Displays the urls stored in the global var Student_Notifications_Url."""
+
     def get(self):
+        """GET http method"""
+
         global Student_Notifications_Url
         self.response.out.write("The Notification Urls as of now are - "
         + str(Student_Notifications_Url))
 
+
 class PostPermaHandler(webapp2.RequestHandler):
+    """Handles the requests for viewing an individual post."""
+
     def get(self, post_id):
+        """GET http method"""
+
         path = "templates/post.html"
         try:
             to_render = memcache.get("_post_"+str(post_id))
@@ -289,6 +332,7 @@ class PostPermaHandler(webapp2.RequestHandler):
             self.response.out.write(to_render)
         except:
             self.response.out.write("The post ID is invalid.")
+
 
 # Tweepy requirements
 
@@ -360,11 +404,11 @@ class CallbackHandler(webapp2.RequestHandler):
         self.response.out.write(template.render(path, template_values))
         auth_api = tweepy.API(auth)
 
+
 # The dude of all the functions!!!
 def TweetHandler(tweet):
-    """
-    Tweet the "tweet" to @VNITStudNotifs on Twitter using tweepy
-    """
+    """Tweets the "tweet" to @VNITStudNotifs on Twitter using tweepy"""
+
     CONSUMER_KEY = 'iOZsPRzyaQXWTGAJfCI1Q'
     # App key, obtained from dev.twitter.com when app was registered.
     CONSUMER_SECRET = 'ZeFtG1JWV2TOeAB9FNoRwLqnKtDB5HsI2kl3tdAY'
@@ -377,28 +421,35 @@ def TweetHandler(tweet):
     api = tweepy.API(auth)
     api.update_status(tweet[:140])
 
+
 def handle_404(request, response, exception):
+    """Custom 404 handler."""
+
     logging.exception(exception)
-    response.write("Oops! You seem to have wandered off! " +
+    response.write("Oops! You seem to have wandered off! "
                    "The requested page does not exist.")
     response.set_status(404)
 
+
 def handle_500(request, response, exception):
+    """Custom 505 handler."""
+
     logging.exception(exception)
-    response.write("A server error occurred! " +
+    response.write("A server error occurred! "
                    "Report has been logged. Work underway asap.")
     response.set_status(500)
 
-app = webapp2.WSGIApplication([('/?', MainHandler),
-                              ('/check/?', CronHandler),
-                              ('/checkurl/?', CronUrlHandler),
-                              ('/view/?', ViewHandler),
-                              (r'/post/(\d+)/?',PostPermaHandler),
-                              ('/about/?', AboutHandler),
-                              ('/changelog/?', ChangeLogHandler),
-                              ('/url/?', UrlHandler),
-                              ('/oauth/callback/?', CallbackHandler),
-                              ('/oauth/?', OauthHandler)],
+
+app = webapp2.WSGIApplication([('/?',                MainHandler),
+                               ('/check/?',          CronHandler),
+                               ('/checkurl/?',       CronUrlHandler),
+                               ('/view/?',           ViewHandler),
+                               (r'/post/(\d+)/?',    PostPermaHandler),
+                               ('/about/?',          AboutHandler),
+                               ('/changelog/?',      ChangeLogHandler),
+                               ('/url/?',            UrlHandler),
+                               ('/oauth/callback/?', CallbackHandler),
+                               ('/oauth/?',          OauthHandler)],
                               debug=True)
 
 app.error_handlers[404] = handle_404
