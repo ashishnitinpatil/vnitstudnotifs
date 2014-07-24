@@ -224,7 +224,8 @@ class CronHandler(webapp2.RequestHandler):
                 # Shorten the url
                 shortened_url = UrlShortener(url)
                 # Tweet the Post
-                TweetHandler(' - '.join((title, shortened_url)))
+                shortened_title = title[:120]
+                TweetHandler(' - '.join((shortened_title, shortened_url)))
                 # Display the new post in the response
                 self.response.out.write(
                     "<br>Title --> {0}<br>Url --> <a href={1}>{1}</a><br>"
