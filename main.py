@@ -213,6 +213,9 @@ class CronHandler(webapp2.RequestHandler):
                 </b><br>".format(stud_url))
             for new in new_links:
                 title, url = new, new_links[new]
+                url = urlparse.urlunparse(urlparse.urlparse(url))
+                if url.startswith("https"):
+                    url = url.replace("https", "http")
                 All_Links[title] = url
                 logging.info('Title -- '+title+'Url -- '+url)
                 # Save the post
