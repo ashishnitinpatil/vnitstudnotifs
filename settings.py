@@ -1,0 +1,1 @@
+from vnitstudentnotifications.settings import *
