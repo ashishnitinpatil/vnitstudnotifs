@@ -26,3 +26,48 @@ indexes:
 # manually, move them above the marker line.  The index.yaml file is
 # automatically uploaded to the admin console when you next deploy
 # your application using appcfg.py.
+
+- kind: coreapp_posts
+  properties:
+  - name: __key__
+    direction: desc
+
+- kind: coreapp_posts
+  properties:
+  - name: added_on
+    direction: desc
+  - name: __key__
+    direction: desc
+
+- kind: coreapp_settings
+  properties:
+  - name: __key__
+    direction: desc
+
+- kind: coreapp_urls
+  properties:
+  - name: __key__
+    direction: desc
+
+- kind: coreapp_urls
+  properties:
+  - name: added_on
+    direction: desc
+  - name: __key__
+    direction: desc
+
+- kind: dbindexer_indexed
+  properties:
+  - name: idxf_foreignkey2__name_fi2_l_iexact
+  - name: idxf_foreignkey__fk__name_fi2_l_endswith
+
+- kind: dbindexer_indexed
+  properties:
+  - name: idxf_foreignkey__title_l_iexact
+  - name: idxf_name_l_iendswith
+
+- kind: django_site
+  properties:
+  - name: domain
+  - name: __key__
+    direction: desc

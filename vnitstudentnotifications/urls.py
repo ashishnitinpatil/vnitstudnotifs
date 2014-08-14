@@ -7,7 +7,7 @@ admin.autodiscover()
 urlpatterns = patterns('',
     # Examples:
     # url(r'^$', 'myapp.views.home', name='home'),
-    url(r'', include('vnitstudentnotifications.coreapp.urls')),
+    url(r'', include('vnitstudentnotifications.coreapp.urls', namespace='coreapp')),
 
     # Uncomment the admin/doc line below to enable admin documentation:
     # url(r'^admin/doc/', include('django.contrib.admindocs.urls')),

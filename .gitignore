@@ -3,6 +3,9 @@
 *~
 .gitattributes
 
+# Credentials
+credentials.py
+
 #############
 ## Windows detritus
 #############
