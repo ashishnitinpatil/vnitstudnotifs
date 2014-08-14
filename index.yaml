@@ -35,6 +35,12 @@ indexes:
 - kind: coreapp_posts
   properties:
   - name: added_on
+  - name: __key__
+    direction: desc
+
+- kind: coreapp_posts
+  properties:
+  - name: added_on
     direction: desc
   - name: __key__
     direction: desc

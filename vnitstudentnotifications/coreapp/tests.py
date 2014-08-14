@@ -15,7 +15,7 @@ class UtilsTests(TestCase):
         ]
         for url in urls:
             # TODO Comment the following "continue" when running final test.
-            continue
+            # continue
             self.assertEqual(utils.get_page(url, proxy=True),
                              utils.get_page(url, proxy=False))
 
@@ -47,8 +47,18 @@ class ViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_cron_check(self):
+        response = self.client.get(reverse('coreapp:cron')+"?initialize=True,testing=True")
+        self.assertEqual(response.status_code, 200)
+        self.assertIsNotNone(Posts.objects.all())
         response = self.client.get(reverse('coreapp:cron')+"?testing=True")
         self.assertEqual(response.status_code, 200)
+
+    def test_cron_url_check(self):
+        for url in Urls.objects.all():
+            url.delete()
+        response = self.client.get(reverse('coreapp:cron_url'))
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(len(Urls.objects.all()) > 0)
 
     def test_about_page(self):
         response = self.client.get(reverse('coreapp:about'))

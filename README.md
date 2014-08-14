@@ -3,7 +3,7 @@ Student Notifications Checker
 
 **Author**  - Ashish Nitin Patil  
 **Created** - 12th of June, 2013 (v2)  
-**Updated** - 13th of July, 2014 (v5.2) [5-Apr v5.1, 9-Mar v5, 1-Jan v4]  
+**Updated** - 15th August, 2014 (v6) [5-Apr v5.1, 9-Mar v5, 1-Jan v4]  
 **Licence** - BSD License (Free for commercial use).
 
 
@@ -12,7 +12,7 @@ Student Notifications Checker
 - The app runs 'cron' jobs periodically (as per settings in [cron.yaml](/cron.yaml)), checking for any new updates on the [Student Notifications page](http://vnit.ac.in/index.php?option=com_content&view=article&id=612&Itemid=214).
 - If there are any new updates/notifications, they are stored in the database.
 - The corresponding *title - url* is then tweeted on [@VNITStudNotifs](http://www.twitter.com/VNITStudNotifs).
-- With the help of [IFTTT](http://www.ifttt.com), we then post the tweets on our [FaceBook page](http://www.facebook.com/vnitstudnotifs).
+- With the help of [IFTTT](http://www.ifttt.com), we then post the tweets on our [FaceBook page](http://www.facebook.com/vnitstudnotifs). We now directly use twitter's facebook connection to post new tweets to facebook page.
 
 
 ### Key Components
@@ -22,3 +22,4 @@ Student Notifications Checker
 - We use the [tweepy](https://github.com/tweepy/tweepy) python library for twitter API, to post our tweets.
 - The [bs4 directory](https://github.com/ashishnitinpatil/vnitstudnotifs/tree/master/bs4) containing the [BeautifulSoup4](http://www.crummy.com/software/BeautifulSoup/) library is what we currently use to parse html of the [Student Notifications page](http://vnit.ac.in/index.php?option=com_content&view=article&id=612&Itemid=214).
 - We use [bitly_api](https://github.com/bitly/bitly-api-python/) to shorten the update urls before tweeting them.
+- The main django app is [vnitstudentnotifications.coreapp](https://github.com/ashishnitinpatil/vnitstudnotifs/tree/master/vnitstudentnotifications/coreapp).

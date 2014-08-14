@@ -2,9 +2,12 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from google.appengine.api import memcache
 import datetime
+import logging
+from bs4 import BeautifulSoup
 from vnitstudentnotifications.coreapp import utils
 from vnitstudentnotifications.coreapp.models import Posts, Urls
 from django.forms.models import model_to_dict
+import urlparse
 
 
 def home(request):
@@ -28,7 +31,7 @@ def home(request):
             cur = datetime.datetime.now()
             posts = []
             for pst in all_posts:
-                if cur - pst.created < datetime.timedelta(days=7):
+                if cur - pst.added_on < datetime.timedelta(days=7):
                     posts.append(pst)
                 else:
                     break
@@ -51,13 +54,16 @@ def cron(request):
     stores every new link & tweets it out!
     """
 
-    if request.GET.get('testing', "").lower() == 'true':
-        testing = True
+    initialize = False
+    testing = False
     if request.GET.get('initialize', "").lower() == 'true':
         initialize = True
-    response = {"status": "Did not execute", "links": list()}
+    if request.GET.get('testing', "").lower() == 'true':
+        testing = True
+    response = []
 
     for stud_url in Urls.objects.all():
+        cur_response = {"status": "Something's funny.", "links": list()}
         if not testing:
             # fetch page
             notifs = utils.get_page(stud_url.url)
@@ -96,11 +102,11 @@ def cron(request):
                         cur_url
 
         if new_links:
-            response["status"] = "New links found on {0}".format(stud_url.url)
+            cur_response["status"] = "New links found on {0}".format(stud_url.url)
             memcache.delete("all_posts")
             memcache.delete("latest_posts")
         else:
-            response["status"] = "No new links found on {0}".format(stud_url.url)
+            cur_response["status"] = "No new links found on {0}".format(stud_url.url)
         for new in new_links:
             title, url = new, new_links[new]
             url = urlparse.urlunparse(urlparse.urlparse(url))
@@ -114,9 +120,45 @@ def cron(request):
             shortened_url = utils.url_shortener(url)
             # Tweet the Post
             shortened_title = title[:100]
-            utils.tweet(' - '.join((shortened_title, shortened_url)),
-                        testing and initialize)
+            utils.tweet(' - '.join((shortened_title,shortened_url)), initialize)
             # Display the new post in the response
-            response["links"].append([title, url])
+            cur_response["links"].append([title, url])
+        response.append(cur_response)
 
-    return HttpResponse(response, content_type="application/json")
+    if not response:
+        response = {"status": "Did not execute", "links": list()}
+    return HttpResponse(str(response), content_type="application/json")
+
+
+def cron_url(self):
+    """
+    To be safe, fetch the Notifications Url from the main page of vnit.
+    Because, they once changed the url & the app was useless for a month.
+    """
+
+    response = []
+    vnit_main_url = "http://www.vnit.ac.in"
+    vnit_homepage = utils.get_page(vnit_main_url)
+    vnit_home = BeautifulSoup(vnit_homepage)
+    for spans in vnit_home.findAll('span'):
+        if spans.string.strip().lower() == "student notice board":
+            rel_link = spans.previous.get('href')
+            msg = "Got a rel link " + rel_link
+            response.append(msg)
+            logging.info(msg)
+            break
+    else:
+        msg = "Verify Notifications' Url failure"
+        response.append(msg)
+        logging.error(response)
+        rel_link = "/index.php?option=com_content&view=article&id=612&Itemid=214"
+    new_url = urlparse.urljoin(vnit_main_url, rel_link)
+    if not new_url in (x.url for x in Urls.objects.all()):
+        msg = "Change in Notification Url to {0}".format(new_url)
+        response.append(msg)
+        logging.error(response)
+        Urls.objects.create(url=new_url)
+    else:
+        response.append("No change in notif url")
+
+    return HttpResponse("\n".join(response), content_type="application/json")

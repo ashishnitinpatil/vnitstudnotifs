@@ -3,11 +3,14 @@ import logging
 import datetime
 import tweepy
 import bitly_api
+import re
+import urlparse
+from bs4 import BeautifulSoup
 from google.appengine.api import memcache
 from django.conf import settings
 
 
-def get_page(url, proxy=True):
+def get_page(url, proxy=False):
     """Fetches the content displayed on the page of given url."""
 
     # page = urlfetch.fetch(url).content
