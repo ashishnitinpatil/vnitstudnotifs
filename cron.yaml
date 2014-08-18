@@ -1,10 +1,10 @@
 cron:
 - description: Look for any update on the site during day-time
-  url: /check
+  url: /check/
   schedule: every 30 minutes from 1:00 to 15:00
 - description: Look for any update on the site during night-time
-  url: /check
+  url: /check/
   schedule: every 1 hours from 15:40 to 1:00
 - description: Look for any change in Notifications Url
-  url: /checkurl
+  url: /checkurl/
   schedule: every 12 hours
